@@ -3,6 +3,8 @@
 
 #pragma once
 
+// NOB_COMMIT_HASH: latest
+
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -1341,6 +1343,114 @@ namespace temp {
         nob::Cmd cmd;
         cmd.append("curl", "-sL", url, "-o", output_path);
         return cmd.run_sync_and_reset();
+    }
+
+    inline std::string get_remote_commit_hash() {
+        nob::Cmd cmd;
+        cmd.append("curl", "-sL", "https://api.github.com/repos/altescape/nob/commits/main");
+        
+        nob::Fd r, w;
+        if (!nob::create_pipe(&r, &w)) return "";
+        
+        nob::CmdRedirect redir = {};
+        redir.fdout = &w;
+        nob::Proc p = cmd.run_async(redir);
+        nob::fd_close(w);
+        
+        std::string out = nob::read_all_from_fd(r);
+        nob::fd_close(r);
+        
+        if (!nob::proc_wait(p)) return "";
+        
+        size_t pos = out.find("\"sha\": \"");
+        if (pos == std::string::npos) return "";
+        pos += 8;
+        size_t end = out.find("\"", pos);
+        if (end == std::string::npos) return "";
+        return out.substr(pos, end - pos);
+    }
+
+    inline void check_for_updates_async() {
+        std::thread([]() {
+            std::string remote = get_remote_commit_hash();
+            std::string local = "latest";
+            
+            std::ifstream in("nob.hpp");
+            std::string line;
+            if (in.is_open()) {
+                while (std::getline(in, line)) {
+                    if (line.find("// NOB_COMMIT_HASH: ") == 0) {
+                        local = line.substr(20);
+                        local.erase(local.find_last_not_of(" \n\r\t") + 1);
+                        break;
+                    }
+                }
+                in.close();
+            }
+
+            if (!remote.empty() && local != "latest" && remote != local) {
+                nob::log(nob::LogLevel::INFO, "A new version of NOB is available! Run `nob --upgrade` to install it.");
+            }
+        }).detach();
+    }
+
+    inline void upgrade(const char* source_file) {
+        std::string remote = get_remote_commit_hash();
+        if (remote.empty()) {
+            nob::log(nob::LogLevel::ERROR, "Could not fetch the latest version from GitHub API.");
+            std::exit(1);
+        }
+
+        std::string local = "latest";
+        std::ifstream in("nob.hpp");
+        std::string line;
+        if (in.is_open()) {
+            while (std::getline(in, line)) {
+                if (line.find("// NOB_COMMIT_HASH: ") == 0) {
+                    local = line.substr(20);
+                    local.erase(local.find_last_not_of(" \n\r\t") + 1);
+                    break;
+                }
+            }
+            in.close();
+        }
+
+        if (local == remote) {
+            nob::log(nob::LogLevel::INFO, "You are already on the latest version (%s).", local.c_str());
+            return;
+        }
+
+        nob::log(nob::LogLevel::INFO, "Upgrading nob.hpp to latest commit: %s", remote.c_str());
+        
+        std::string base_url = "https://raw.githubusercontent.com/altescape/nob/main/";
+        if (!fetch_file(base_url + "nob.hpp", "nob.hpp.new")) {
+            nob::log(nob::LogLevel::ERROR, "Failed to download new nob.hpp.");
+            std::exit(1);
+        }
+
+        // Rewrite the new file with the new commit hash
+        std::ifstream in_new("nob.hpp.new");
+        std::ofstream out_new("nob.hpp");
+        bool replaced = false;
+        if (in_new.is_open() && out_new.is_open()) {
+            while (std::getline(in_new, line)) {
+                if (!replaced && line.find("// NOB_COMMIT_HASH:") == 0) {
+                    out_new << "// NOB_COMMIT_HASH: " << remote << "\n";
+                    replaced = true;
+                } else {
+                    out_new << line << "\n";
+                }
+            }
+            in_new.close();
+            out_new.close();
+        }
+        nob::delete_file("nob.hpp.new");
+
+        nob::log(nob::LogLevel::INFO, "Upgrade successful! Rebuilding...");
+        
+        // Touch source_file so it triggers rebuild
+        std::ofstream touch(source_file, std::ios::app);
+        touch.close();
     }
 
     inline void go_rebuild_urself(const char* source_file, int argc, char** argv) {

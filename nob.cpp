@@ -9,6 +9,15 @@ int main(int argc, char** argv) {
     // 2. PARSE CLI ARGUMENTS (OPTIONAL)
     nob::CliArgs args = nob::CliArgs::parse(argc, argv);
     
+    // Check for intelligent upgrade flag
+    if (args.has_flag("upgrade")) {
+        nob::upgrade(__FILE__);
+        return 0;
+    }
+    
+    // Check for updates in the background on every run
+    nob::check_for_updates_async();
+    
     // 3. CONFIGURE THE COMPILER (DETECTS CXX/CC ENVIRONMENTS)
     nob::Toolchain toolchain;
     toolchain.configure(args);
