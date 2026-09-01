@@ -1,0 +1,16 @@
+# Windows Executables
+*.exe
+*.exe.old
+
+# POSIX Executables (macOS/Linux)
+nob
+nob.old
+main
+main.old
+
+# Compile Database
+compile_commands.json
+
+# Object files (if any intermediate builds occur)
+*.o
+*.obj
