@@ -1213,7 +1213,23 @@ namespace temp {
             
             if (valid.empty()) {
                 nob::log(nob::LogLevel::ERROR, "No C++ compilers found in PATH!");
-                std::cout << "Would you like to manually enter a compiler command/path? [Y/n]: ";
+                
+#if _WIN32
+                std::cout << "[INFO] Windows detected. To install a compiler, you can run this in PowerShell:\n";
+                std::cout << "       winget install MSYS2.MinGW-w64.GCC\n";
+#elif __APPLE__
+                std::cout << "[INFO] macOS detected. To install a compiler, run this in your terminal:\n";
+                std::cout << "       xcode-select --install\n";
+#elif __linux__
+                std::cout << "[INFO] Linux detected. To install a compiler, run one of the following depending on your distro:\n";
+                std::cout << "       Debian/Ubuntu: sudo apt install build-essential\n";
+                std::cout << "       Fedora:        sudo dnf install gcc-c++\n";
+                std::cout << "       Arch:          sudo pacman -S gcc\n";
+#else
+                std::cout << "[INFO] Please install a C++ compiler (like g++ or clang++) to proceed.\n";
+#endif
+                
+                std::cout << "\nWould you like to manually enter a compiler command/path? [Y/n]: ";
                 std::string ans;
                 if (!(std::cin >> ans) || std::cin.eof()) std::exit(1);
                 if (ans != "n" && ans != "N") {
