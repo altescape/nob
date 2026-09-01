@@ -1170,7 +1170,7 @@ namespace temp {
     // RETURNS THE NAME OF THE COMPILER CHOSEN BY THE USER.
     inline std::string find_compilers() {
         while (true) {
-            std::vector<std::string> candidates = {"g++", "clang++", "cl.exe", "c++", "cc"};
+            std::vector<std::string> candidates = {"g++", "clang++", "cl.exe", "c++"};
             std::vector<std::string> valid;
             
             nob::log(nob::LogLevel::INFO, "No compiler configured. Scanning system...");
@@ -1215,11 +1215,11 @@ namespace temp {
                 nob::log(nob::LogLevel::ERROR, "No C++ compilers found in PATH!");
                 std::cout << "Would you like to manually enter a compiler command/path? [Y/n]: ";
                 std::string ans;
-                std::cin >> ans;
+                if (!(std::cin >> ans) || std::cin.eof()) std::exit(1);
                 if (ans != "n" && ans != "N") {
                     std::cout << "Compiler command: ";
                     std::string custom;
-                    std::cin >> custom;
+                    if (!(std::cin >> custom) || std::cin.eof()) std::exit(1);
                     return custom;
                 }
                 nob::log(nob::LogLevel::ERROR, "Cannot proceed without a compiler. Aborting.");
@@ -1240,6 +1240,7 @@ namespace temp {
             
             int choice = 0;
             if (!(std::cin >> choice)) {
+                if (std::cin.eof()) std::exit(1);
                 std::cin.clear();
                 std::cin.ignore(10000, '\n');
             }
@@ -1391,7 +1392,7 @@ namespace temp {
                 nob::log(nob::LogLevel::ERROR, "Self-rebuild failed! The saved compiler might be broken or you have syntax errors.");
                 std::cout << "Would you like me to wipe the compiler config and try a different compiler? [Y/n]: ";
                 std::string ans;
-                std::cin >> ans;
+                if (!(std::cin >> ans) || std::cin.eof()) std::exit(1);
                 if (ans != "n" && ans != "N") {
                     std::string chosen = find_compilers();
                     std::ifstream in(source_file);
