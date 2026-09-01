@@ -784,6 +784,7 @@ struct CmdRedirect {
 class Cmd {
 public:
     std::vector<std::string> items;
+    bool silent = false;
 
     void append(const std::string& arg) { items.push_back(arg); }
 
@@ -862,7 +863,7 @@ public:
             rendered = items[0] + " @" + rsp_file;
             log(LogLevel::WARNING, "Command exceeded length limits. Using response file: %s", rsp_file.c_str());
         }
-        log(LogLevel::INFO, "CMD: %s", rendered.c_str());
+        if (!silent) log(LogLevel::INFO, "CMD: %s", rendered.c_str());
 
 #ifdef _WIN32
         STARTUPINFOA siStartInfo;
@@ -1347,6 +1348,7 @@ namespace temp {
 
     inline std::string get_remote_commit_hash() {
         nob::Cmd cmd;
+        cmd.silent = true;
         cmd.append("curl", "-sL", "https://api.github.com/repos/altescape/nob/commits/main");
         
         nob::Fd r, w;
@@ -1388,7 +1390,7 @@ namespace temp {
                 in.close();
             }
 
-            if (!remote.empty() && local != "latest" && remote != local) {
+            if (!remote.empty() && remote != local) {
                 nob::log(nob::LogLevel::INFO, "A new version of NOB is available! Run `nob --upgrade` to install it.");
             }
         }).detach();
