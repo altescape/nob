@@ -1,4 +1,4 @@
-// NOB_COMPILER: cc
+// NOB_COMPILER: g++
 #define NOB_IMPLEMENTATION
 #include "nob.hpp"
 
