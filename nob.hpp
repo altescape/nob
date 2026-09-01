@@ -1319,9 +1319,36 @@ namespace temp {
         return chosen;
     }
 
+    inline bool fetch_file(const std::string& url, const std::string& output_path) {
+        nob::log(nob::LogLevel::INFO, "Fetching %s...", output_path.c_str());
+        nob::Cmd cmd;
+        cmd.append("curl", "-sL", url, "-o", output_path);
+        return cmd.run_sync_and_reset();
+    }
+
     inline void go_rebuild_urself(const char* source_file, int argc, char** argv) {
         const char* nob_hpp = "nob.hpp";
         
+        if (!nob::file_exists(source_file)) {
+            nob::log(nob::LogLevel::WARNING, "Source file '%s' not found.", source_file);
+            std::cout << "Would you like me to fetch the latest NOB templates from GitHub to bootstrap this directory? [Y/n]: ";
+            std::string ans;
+            std::cin >> ans;
+            if (ans != "n" && ans != "N") {
+                std::string base_url = "https://raw.githubusercontent.com/altescape/nob/main/";
+                if (!nob::fetch_file(base_url + "nob.cpp", "nob.cpp") ||
+                    !nob::fetch_file(base_url + "nob.hpp", "nob.hpp") ||
+                    !nob::fetch_file(base_url + "TECHNICAL_DOCUMENT.md", "TECHNICAL_DOCUMENT.md") ||
+                    !nob::fetch_file(base_url + "main.cpp", "main.cpp")) {
+                    nob::log(nob::LogLevel::ERROR, "Failed to fetch files from GitHub. Check your internet connection or URL.");
+                    std::exit(1);
+                }
+                nob::log(nob::LogLevel::INFO, "Successfully bootstrapped from GitHub!");
+            } else {
+                std::exit(1);
+            }
+        }
+
         std::string exe_path = argv[0];
 #ifdef _WIN32
         if (exe_path.length() < 4 || exe_path.substr(exe_path.length() - 4) != ".exe") {
