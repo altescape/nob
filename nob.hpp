@@ -1559,6 +1559,7 @@ struct CliArgs {
     bool help = false;
     bool clean = false;
     bool dry_run = false;
+    bool upgrade = false;
     int64_t jobs = 1;
     std::string mode = "debug"; // debug or release
     std::string sysroot;
@@ -1576,6 +1577,7 @@ struct CliArgs {
         CliArgs args;
         parser.add_bool_var(&args.help, "help", "Print this help message and exit");
         parser.add_bool_var(&args.help, "h", ""); 
+        parser.add_bool_var(&args.upgrade, "upgrade", "Upgrade nob to the latest version from GitHub");
         parser.add_bool_var(&args.clean, "clean", "Remove build directory and exit");
         parser.add_bool_var(&args.dry_run, "dry-run", "Print commands without executing them");
         parser.add_bool_var(&args.dry_run, "n", "");

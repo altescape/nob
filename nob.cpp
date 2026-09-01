@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     nob::CliArgs args = nob::CliArgs::parse(argc, argv);
     
     // Check for intelligent upgrade flag
-    if (args.has_flag("upgrade")) {
+    if (args.upgrade) {
         nob::upgrade(__FILE__);
         return 0;
     }
