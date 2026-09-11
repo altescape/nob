@@ -3,7 +3,13 @@
 
 #pragma once
 
-// NOB_COMMIT_HASH: latest
+// NOB_COMMIT_HASH: 168ab7e6fe8cced48dec5615ab2d1ea938d87875
+
+// CAPTURE NOB.HPP PATH AT COMPILE TIME
+// This allows nob.cpp to automatically detect where nob.hpp is located
+#ifndef NOB_HPP_PATH
+#define NOB_HPP_PATH __FILE__
+#endif
 
 #include <cstddef>
 #include <cstdint>
@@ -1456,7 +1462,8 @@ namespace temp {
     }
 
     inline void go_rebuild_urself(const char* source_file, int argc, char** argv) {
-        const char* nob_hpp = "nob.hpp";
+        // USE THE PATH CAPTURED AT COMPILE TIME WHEN NOB.HPP WAS INCLUDED
+        const char* nob_hpp = NOB_HPP_PATH;
         
         if (!nob::file_exists(source_file)) {
             nob::log(nob::LogLevel::WARNING, "Source file '%s' not found.", source_file);
