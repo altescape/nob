@@ -3,7 +3,7 @@
 
 #pragma once
 
-// NOB_COMMIT_HASH: 168ab7e6fe8cced48dec5615ab2d1ea938d87875
+// NOB_COMMIT_HASH: latest_commit
 
 // CAPTURE NOB.HPP PATH AT COMPILE TIME
 // This allows nob.cpp to automatically detect where nob.hpp is located
